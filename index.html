@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Login + Main Panel</title>
+    <style>
+        /* ===== Global Styles ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* ===== Login Page Styles ===== */
+        #loginPage {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url("https://i.supaimg.com/d49d3bf7-603d-4c3c-994d-bf49799555ad/12fe1ea0-34ac-4497-9d86-5a14ee181be1.jpg");
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        #loginPage::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(270deg, #0f2027, #203a43, #2c5364);
+            background-size: 600% 600%;
+            animation: bgmove 12s infinite linear;
+            opacity: 0.75;
+        }
+
+        @keyframes bgmove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .login-box {
+            position: relative;
+            z-index: 1;
+            width: 300px;
+            padding: 35px;
+            border-radius: 18px;
+            text-align: center;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            animation: boxfade 1.2s ease;
+        }
+
+        @keyframes boxfade {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-box h2 {
+            color: #00eaff;
+            margin-bottom: 5px;
+        }
+
+        .login-box p {
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .login-box input::placeholder {
+            color: #ddd;
+        }
+
+        .login-box button {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #00eaff, #0066ff);
+            color: white;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-box button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #00eaff;
+        }
+
+        .get-pass {
+            background: linear-gradient(45deg, #ff7b00, #ff2e63) !important;
+            margin-top: 10px;
+        }
+
+        #error {
+            margin-top: 10px;
+            color: #ff4d4d;
+            display: none;
+            font-size: 13px;
+        }
+
+        /* ===== Main Panel Styles ===== */
+        #mainPanel {
+            width: 100%;
+            height: 100%;
+            display: none;
+            position: relative;
+            background: #000;
+        }
+
+        .main-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        #predictionBox {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 20px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            width: 180px;
+            text-align: center;
+            border: 3px solid transparent;
+            background-image: linear-gradient(black, black), linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+            background-origin: border-box;
+            background-clip: content-box, border-box;
+            box-shadow: 0 0 20px rgba(0, 255, 191, 0.5);
+            z-index: 99999;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.5s ease;
+            animation: borderPulse 2s infinite linear;
+        }
+
+        @keyframes borderPulse {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        #boxTitle {
+            font-size: 16px;
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .big, .small, .green, .red {
+            font-size: 24px;
+            font-weight: 900;
+            text-transform: uppercase;
+            animation: textGlow 1.5s infinite alternate;
+        }
+
+        .big {
+            color: #09ff77;
+            text-shadow: 0 0 15px #09ff77, 0 0 5px #09ff77;
+        }
+
+        .small {
+            color: #ff3b3b;
+            text-shadow: 0 0 15px #ff3b3b, 0 0 5px #ff3b3b;
+        }
+
+        .green {
+            color: #00ff15;
+            text-shadow: 0 0 15px #00ff15, 0 0 5px #00ff15;
+        }
+
+        .red {
+            color: #ff1a1a;
+            text-shadow: 0 0 15px #ff1a1a, 0 0 5px #ff1a1a;
+        }
+
+        @keyframes textGlow {
+            0% { text-shadow: 0 0 8px currentColor, 0 0 16px currentColor; opacity: 0.9; }
+            100% { text-shadow: 0 0 20px currentColor, 0 0 40px currentColor; opacity: 1; }
+        }
+
+        #numberText {
+            font-size: 16px;
+            color: #ffd700;
+            margin: 5px 0;
+        }
+
+        .period {
+            font-size: 11px;
+            margin-top: 5px;
+            color: #ccc;
+        }
+
+        .timer {
+            font-size: 13px;
+            margin-top: 3px;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        #loginForm input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 20px;
+            border: 1px solid #00ffbf;
+            background: #222;
+            color: white;
+            margin-bottom: 8px;
+            text-align: center;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        #loginForm button {
+            padding: 6px 15px;
+            border-radius: 20px;
+            border: none;
+            background: linear-gradient(45deg, #00ffbf, #00bfff);
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        #loginForm button:active {
+            transform: scale(0.95);
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #00ffbf88;
+            font-weight: bold;
+            display: none;
+            z-index: 100000;
+            opacity: 0.95;
+        }
+
+        #toast.success {
+            background: #00ff7f;
+            color: #000;
+        }
+
+        #toast.error {
+            background: #ff3b3b;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage">
+        <div class="login-box">
+            <h2>🔐 Secure Login</h2>
+            <p>Please enter your password</p>
+            <input type="password" id="password" placeholder="Enter Password">
+            <button onclick="login()">Login</button>
+            <a href="https://t.me/Gopalraj444">
+                <button class="get-pass">GET PASSWORD</button>
+            </a>
+            <p id="error">Wrong Password 🚫</p>
+        </div>
+    </div>
+
+    <!-- Main Panel (initially hidden) -->
+    <div id="mainPanel">
+        <iframe class="main-iframe" src="https://hgnice.biz/#/register?invitationCode=542341091122"></iframe>
+        
+        <div id="predictionBox">
+            <div id="boxTitle">👾 𝙅𝘽𝙏𝙍𝙀𝘼𝘿𝙀𝙍💀<br><span style="font-size:10px">( Big Team )</span></div>
+            <div id="loginForm">
+                <input type="password" id="passwordInput" placeholder="Enter Password">
+                <br>
+                <button id="loginBtn">Login</button>
+            </div>
+            <div id="predictionUI" style="display:none;">
+                <div id="bsText" class="big">BIG</div>
+                <div id="colorText" class="green">GREEN</div>
+                <div id="numberText">Num: 8 | 2</div>
+                <div id="period" class="period">Period: --</div>
+                <div id="timer" class="timer">00:00</div>
+            </div>
+        </div>
+        <div id="toast"></div>
+    </div>
+
+    <script>
+        // ===== LOGIN FUNCTION =====
+        function login() {
+            var pass = document.getElementById("password").value;
+            if (pass === "JBTREADER") {
+                alert("Login Successful");
+                // Hide login page, show main panel
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('mainPanel').style.display = 'block';
+                
+                // Initialize main panel functionality
+                initializeMainPanel();
+            } else {
+                document.getElementById("error").style.display = "block";
+            }
+        }
+
+        // ===== MAIN PANEL FUNCTIONS =====
+        function initializeMainPanel() {
+            // Prediction logic
+            function ultraPrediction() {
+                let r = Math.random();
+                let bigSmall = (r > 0.5) ? "BIG" : "SMALL";
+                let num1 = (bigSmall === "BIG") ? Math.floor(Math.random() * 5) + 5 : Math.floor(Math.random() * 5);
+                let num2 = Math.floor(Math.random() * 10);
+                let color = (num1 % 2 === 0) ? "RED" : "GREEN";
+                return { bigSmall, num1, num2, color };
+            }
+
+            function generatePeriod() {
+                const now = new Date();
+                const istOffset = 5.5 * 60;
+                const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                const istTime = new Date(utc + (istOffset * 60000));
+                const hours = istTime.getHours();
+                const minutes = istTime.getMinutes();
+                const seconds = istTime.getSeconds();
+                const startHour = 5;
+                const startMinute = 30;
+                let elapsedSeconds = (hours * 3600 + minutes * 60 + seconds) - (startHour * 3600 + startMinute * 60);
+                if (elapsedSeconds < 0) elapsedSeconds = 0;
+                const totalPeriods = Math.floor(elapsedSeconds / 30);
+                const upcomingPeriod = totalPeriods + 1;
+                const yyyy = istTime.getFullYear();
+                const mm = String(istTime.getMonth() + 1).padStart(2, '0');
+                const dd = String(istTime.getDate()).padStart(2, '0');
+                const datePart = `${yyyy}${mm}${dd}`;
+                const periodNumber = "1000" + String(upcomingPeriod).padStart(5, '0');
+                return datePart + periodNumber;
+            }
+
+            function updateTimer() {
+                const now = new Date();
+                const istOffset = 5.5 * 60;
+                const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                const istTime = new Date(utc + (istOffset * 60000));
+                const seconds = istTime.getSeconds();
+                const remainingSeconds = 30 - (seconds % 30);
+                document.getElementById("timer").innerText = `00:${String(remainingSeconds).padStart(2, '0')}`;
+            }
+
+            let currentPeriod = "";
+            let currentResult = ultraPrediction();
+            let intervalId = null;
+
+            function updatePredictionAndPeriod() {
+                const newPeriod = generatePeriod();
+                if (newPeriod !== currentPeriod) {
+                    currentPeriod = newPeriod;
+                    currentResult = ultraPrediction();
+                }
+                
+                const periodEl = document.getElementById("period");
+                const bsEl = document.getElementById("bsText");
+                const ctEl = document.getElementById("colorText");
+                const numEl = document.getElementById("numberText");
+                
+                if (periodEl) periodEl.innerText = "Period: " + currentPeriod;
+                if (bsEl) {
+                    bsEl.innerText = currentResult.bigSmall;
+                    bsEl.className = (currentResult.bigSmall === "BIG") ? "big" : "small";
+                }
+                if (ctEl) {
+                    ctEl.innerText = currentResult.color;
+                    ctEl.className = (currentResult.color === "GREEN") ? "green" : "red";
+                }
+                if (numEl) numEl.innerText = `Num: ${currentResult.num1} , ${currentResult.num2}`;
+                
+                updateTimer();
+            }
+
+            function showToast(message, type) {
+                const toast = document.getElementById("toast");
+                if (toast) {
+                    toast.innerText = message;
+                    toast.className = type;
+                    toast.style.display = "block";
+                    setTimeout(() => {
+                        toast.style.display = "none";
+                    }, 2000);
+                }
+            }
+
+            // Main panel login
+            const loginBtn = document.getElementById("loginBtn");
+            const passwordInput = document.getElementById("passwordInput");
+            const loginForm = document.getElementById("loginForm");
+            const predictionUI = document.getElementById("predictionUI");
+            const boxTitle = document.getElementById("boxTitle");
+            const predictionBox = document.getElementById("predictionBox");
+
+            if (loginBtn) {
+                loginBtn.addEventListener("click", () => {
+                    if (passwordInput.value === "JBTREADER") {
+                        showToast("Login Successful!", "success");
+                        loginForm.style.display = "none";
+                        boxTitle.style.display = "block";
+                        predictionUI.style.display = "block";
+                        predictionBox.style.width = "180px";
+                        predictionBox.style.padding = "15px";
+                        
+                        // Clear previous interval if exists
+                        if (intervalId) clearInterval(intervalId);
+                        
+                        updatePredictionAndPeriod();
+                        intervalId = setInterval(updatePredictionAndPeriod, 1000);
+                    } else {
+                        showToast("Invalid Password!", "error");
+                        passwordInput.value = "";
+                    }
+                });
+            }
+
+            // Drag functionality
+            let drag = false, dx = 0, dy = 0;
+            
+            if (predictionBox) {
+                predictionBox.addEventListener("mousedown", e => {
+                    drag = true;
+                    dx = e.clientX - predictionBox.offsetLeft;
+                    dy = e.clientY - predictionBox.offsetTop;
+                });
+            }
+
+            document.addEventListener("mousemove", e => {
+                if (!drag || !predictionBox) return;
+                predictionBox.style.left = e.clientX - dx + "px";
+                predictionBox.style.top = e.clientY - dy + "px";
+                predictionBox.style.bottom = "auto";
+                predictionBox.style.right = "auto";
+            });
+
+            document.addEventListener("mouseup", () => drag = false);
+
+            // Touch events for mobile
+            if (predictionBox) {
+                predictionBox.addEventListener("touchstart", e => {
+                    drag = true;
+                    let t = e.touches[0];
+                    dx = t.clientX - predictionBox.offsetLeft;
+                    dy = t.clientY - predictionBox.offsetTop;
+                });
+            }
+
+            document.addEventListener("touchmove", e => {
+                if (!drag || !predictionBox) return;
+                e.preventDefault();
+                let t = e.touches[0];
+                predictionBox.style.left = t.clientX - dx + "px";
+                predictionBox.style.top = t.clientY - dy + "px";
+                predictionBox.style.bottom = "auto";
+                predictionBox.style.right = "auto";
+            });
+
+            document.addEventListener("touchend", () => drag = false);
+        }
+
+        // Handle any errors
+        window.onerror = function(msg, url, line) {
+            console.log("Error: " + msg + " at line " + line);
+            return false;
+        };
+    </script>
+</body>
+</html>
