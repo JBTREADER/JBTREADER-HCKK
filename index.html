@@ -349,7 +349,7 @@
             // Prediction logic
             function ultraPrediction() {
                 let r = Math.random();
-                let bigSmall = (r > 0.5) ? "BIG" : "SMALL";
+                let bigSmall = (r > 0.4) ? "BIG" : "SMALL";
                 let num1 = (bigSmall === "BIG") ? Math.floor(Math.random() * 5) + 5 : Math.floor(Math.random() * 5);
                 let num2 = Math.floor(Math.random() * 10);
                 let color = (num1 % 2 === 0) ? "RED" : "GREEN";
